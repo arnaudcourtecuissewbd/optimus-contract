@@ -1,0 +1,356 @@
+swagger: "2.0"
+info:
+  title: Optimus API
+  version: "0.0.1"
+# during dev, should point to your local machine
+host: localhost:5000
+# basePath prefixes all resource paths
+basePath: /api
+#
+schemes:
+  # remove http to make production-grade
+  - http
+  - https
+consumes:
+  - application/json
+produces:
+  - application/json
+paths:
+  /swagger:
+    x-swagger-pipe: swagger_raw
+  /theaters:
+    get:
+      parameters:
+        - $ref: "#/parameters/latitude"
+        - $ref: "#/parameters/longitude"
+        - $ref: "#/parameters/radius"
+        - $ref: "#/parameters/unit"
+        - $ref: "#/parameters/minimumResults"
+      responses:
+        200:
+          description: A list of theaters that satisfies the parameters
+          schema:
+            properties:
+              data:
+                type: array
+                items:
+                  $ref: "#/definitions/LightTheater"
+  /theaters/single/{theaterId}:
+    get:
+      parameters:
+        - in: path
+          name: theaterId
+          type: string
+          required: true
+      responses:
+        200:
+          description: Detailed data about the requested theater
+          schema:
+            properties:
+              data:
+                $ref: "#/definitions/FullTheater"
+  /movies/single/{movieId}:
+    get:
+      parameters:
+        - in: path
+          name: movieId
+          type: string
+          required: true
+          description: Either a movie id or cinemaSourceId
+        - $ref: "#/parameters/latitude"
+        - $ref: "#/parameters/longitude"
+        - $ref: "#/parameters/radius"
+        - $ref: "#/parameters/unit"
+        - $ref: "#/parameters/minimumResults"
+      responses:
+        200:
+          description: Detailed data about the requested movie
+          schema:
+            type: object
+            properties:
+              data:
+                $ref: "#/definitions/FullMovie"
+  /movies/{releaseType}:
+    get:
+      parameters:
+        - in: path
+          name: releaseType
+          type: string
+          enum: [nowplaying, comingsoon]
+          required: true
+        - $ref: "#/parameters/latitude"
+        - $ref: "#/parameters/longitude"
+        - $ref: "#/parameters/radius"
+        - $ref: "#/parameters/unit"
+        - $ref: "#/parameters/minimumResults"
+      responses:
+        200:
+          description: A list of movies of the requested type
+          schema:
+            type: object
+            properties:
+              data:
+                type: array
+                items:
+                  $ref: "#/definitions/LightMovie"
+definitions:
+  Date:
+    type: string
+    pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:d{2}:d{2}
+  LightTheater:
+    required:
+      - id
+      - boxofficeId
+      - name
+      - location
+    properties:
+      id:
+        type: string
+      boxofficeId:
+        type: string
+      name:
+        type: string
+      location:
+        $ref: "#/definitions/Location"
+      image:
+        type: string
+        format: uri
+      # tickets:
+      #  type: array
+      geoSearchResult:
+        type: object
+        properties:
+          distance:
+            type: number
+          distanceUnit:
+            type: string
+            enum: [Kilometers, Miles]
+          status:
+            type: string
+            enum: [InRange, MakeWeight, Kept]
+  Location:
+    properties:
+      address1:
+        type: string
+      address2:
+        type: string
+      city:
+        type: string
+      state:
+        type: string
+      zipCode:
+        type: string
+      geolocation:
+        $ref: "#/definitions/Geocoordinates"
+  Geocoordinates:
+    required:
+      - latitude
+      - longitude
+    properties:
+      latitude:
+        type: number
+      longitude:
+        type: number
+  FullTheater:
+    allOf:
+      - $ref: "#/definitions/LightTheater"
+      - type: object
+        properties:
+          email:
+            type: string
+            format: email
+          phone:
+            type: string
+          timezone:
+            type: string
+          description:
+            type: string
+          movies:
+            type: array
+            items:
+              $ref: "#/definitions/LightMovieWithShowtimes"
+          attributes:
+            type: array
+            items:
+              $ref: "#/definitions/Attribute"
+  BaseMovie:
+    required:
+      - id
+      - cinemaSourceId
+      - title
+    properties:
+      id:
+        type: string
+      cinemaSourceId:
+        type: integer
+      title:
+        type: string
+      sortOrder:
+        type: integer
+      releaseType:
+        type: string
+        # todo list release types
+        enum: [ComingSoon,NowPlaying]
+      releaseDate:
+        $ref: "#/definitions/Date"
+      certification:
+        type: string
+        # todo list all certifications
+        enum: [PG13, PG, R, G]
+      duration:
+        type: string
+        description: Integer representation of movie duration in minutes
+      mediaItems:
+        type: array
+        items:
+          properties:
+            type:
+              type: string
+              enum: [Trailer, Still, Poster]
+            url:
+              type: string
+              format: uri
+  LightMovie:
+    allOf:
+      - $ref: "#/definitions/BaseMovie"
+      - type: object
+        properties:
+          isScheduled:
+            type: boolean
+  LightMovieWithShowtimes:
+    allOf:
+      - $ref: "#/definitions/BaseMovie"
+      - type: object
+        properties:
+          showdates:
+            type: array
+            items:
+              $ref: "#/definitions/Showdate"
+  Attribute:
+    type: object
+    required:
+      - id
+      - name
+      - attributeType
+      - priority
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      attributeType:
+        type: integer
+        # todo list all attribute types and describe meaning
+        enum: [1]
+      priority:
+        type: integer
+  Showdate:
+    type: object
+    properties:
+      date:
+        $ref: "#/definitions/Date"
+      showtimes:
+        type: array
+        items:
+          $ref: "#/definitions/Showtime"
+  Showtime:
+    type: object
+    properties:
+      id:
+        type: string
+      startDateTime:
+        type: string
+        format: date-time
+      isSoldOut:
+        type: boolean
+      isBookable:
+        type: boolean
+      attributes:
+        type: array
+        items:
+          $ref: "#/definitions/Attribute"
+      redirectTicketingUrl:
+        type: string
+        format: uri
+  FullMovie:
+    allOf:
+      - $ref: "#/definitions/BaseMovie"
+      - type: object
+        properties:
+          longSynopsis:
+            type: string
+          shortSynopsis:
+            type: string
+          trailer:
+            type: string
+            format: uri
+          photoGallery:
+            type: array
+            items:
+              type: object
+              properties:
+                imageUrl:
+                  type: string
+                  format: uri
+                id:
+                  type: string
+          cast:
+            type: array
+            items:
+              $ref: "#/definitions/Person"
+          director:
+            $ref: "#/definitions/Person"
+          review:
+            type: object
+            properties:
+              userRating:
+                type: number
+              pressRating:
+                type: number
+          theaters:
+            type: array
+            items:
+              allOf:
+                - $ref: "#/definitions/LightTheater"
+                - type: object
+                  properties:
+                    showdates:
+                      type: array
+                      items:
+                        $ref: "#/definitions/Showdate"
+  Person:
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      imageUrl:
+        type: string
+        format: uri
+
+parameters:
+  latitude:
+    in: query
+    name: latitude
+    type: number
+  longitude:
+    in: query
+    name: longitude
+    type: number
+  radius:
+    in: query
+    name: radius
+    type: number
+  unit:
+    in: query
+    name: unit
+    type: string
+    # todo list enum values
+    enum: [kilometers, miles]
+  minimumResults:
+    in: query
+    name: minimumResults
+    type: integer
+    description: The minimum number of results when filtering by geolocation
+

@@ -1,26 +1,33 @@
 swagger: "2.0"
 info:
   title: Optimus API
-  version: "0.0.1"
+  version: "0.1.0"
 # during dev, should point to your local machine
-host: localhost:5000
+host: wmp-mobileapi-dev.azurewebsites.net
 # basePath prefixes all resource paths
 basePath: /api
-#
 schemes:
-  # remove http to make production-grade
-  - http
   - https
 consumes:
   - application/json
 produces:
   - application/json
+securityDefinitions:
+  auth:
+    type: basic
+security:
+  - auth: []
+tags:
+  - name: exhibitor
+    description: Information about the exhibitor's theaters and showtimes
 paths:
   /swagger:
     x-swagger-pipe: swagger_raw
   /theaters:
     get:
+      tags: [exhibitor]
       parameters:
+        - $ref: "#/parameters/exhibitorCode"
         - $ref: "#/parameters/latitude"
         - $ref: "#/parameters/longitude"
         - $ref: "#/parameters/radius"
@@ -37,11 +44,15 @@ paths:
                   $ref: "#/definitions/LightTheater"
   /theaters/single/{theaterId}:
     get:
+      tags: [exhibitor]
       parameters:
+        - $ref: "#/parameters/exhibitorCode"
         - in: path
           name: theaterId
           type: string
           required: true
+        - $ref: "#/parameters/firstDate"
+        - $ref: "#/parameters/lastDate"
       responses:
         200:
           description: Detailed data about the requested theater
@@ -51,17 +62,21 @@ paths:
                 $ref: "#/definitions/FullTheater"
   /movies/single/{movieId}:
     get:
+      tags: [exhibitor]
       parameters:
         - in: path
           name: movieId
           type: string
           required: true
           description: Either a movie id or cinemaSourceId
+        - $ref: "#/parameters/exhibitorCode"
         - $ref: "#/parameters/latitude"
         - $ref: "#/parameters/longitude"
         - $ref: "#/parameters/radius"
         - $ref: "#/parameters/unit"
         - $ref: "#/parameters/minimumResults"
+        - $ref: "#/parameters/firstDate"
+        - $ref: "#/parameters/lastDate"
       responses:
         200:
           description: Detailed data about the requested movie
@@ -72,12 +87,14 @@ paths:
                 $ref: "#/definitions/FullMovie"
   /movies/{releaseType}:
     get:
+      tags: [exhibitor]
       parameters:
         - in: path
           name: releaseType
           type: string
           enum: [nowplaying, comingsoon]
           required: true
+        - $ref: "#/parameters/exhibitorCode"
         - $ref: "#/parameters/latitude"
         - $ref: "#/parameters/longitude"
         - $ref: "#/parameters/radius"
@@ -189,14 +206,13 @@ definitions:
         type: integer
       releaseType:
         type: string
-        # todo list release types
-        enum: [ComingSoon,NowPlaying]
+        enum: [Undefined, ComingSoon, NowPlaying]
       releaseDate:
         $ref: "#/definitions/Date"
       certification:
         type: string
         # todo list all certifications
-        enum: [PG13, PG, R, G]
+        enum: [G, PG, PG13, R, NC17, UR]
       duration:
         type: string
         description: Integer representation of movie duration in minutes
@@ -330,6 +346,11 @@ definitions:
         format: uri
 
 parameters:
+  exhibitorCode:
+    in: header
+    name: Exhibitor-Code
+    type: string
+    required: true
   latitude:
     in: query
     name: latitude
@@ -346,11 +367,18 @@ parameters:
     in: query
     name: unit
     type: string
-    # todo list enum values
-    enum: [kilometers, miles]
   minimumResults:
     in: query
     name: minimumResults
     type: integer
     description: The minimum number of results when filtering by geolocation
-
+  firstDate:
+    in: query
+    name: firstDate
+    type: string
+    format: date
+  lastDate:
+    in: query
+    name: lastDate
+    type: string
+    format: date

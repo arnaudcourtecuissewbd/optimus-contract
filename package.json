@@ -19,8 +19,8 @@
     "supertest": "^1.0.0"
   },
   "scripts": {
-    "dev": "PORT=5000 nodemon -e js,json,yaml app.js",
-    "start": "PORT=5000 node app.js",
+    "dev": "nodemon -e js,json,yaml app.js",
+    "start": "node app.js",
     "test": "swagger project test"
   }
 }

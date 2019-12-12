@@ -113,7 +113,8 @@ paths:
 definitions:
   Date:
     type: string
-    pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:d{2}:d{2}
+    pattern: ^\d{4}-\d{2}-\d{2}T00:00:00
+    example: 2019-12-12T00:00:00
   LightTheater:
     required:
       - id
@@ -123,40 +124,50 @@ definitions:
     properties:
       id:
         type: string
+        example: 7871
       boxofficeId:
         type: string
+        example: X0TMC
       name:
         type: string
+        example: Prospector Ridgefield
       location:
         $ref: "#/definitions/Location"
       image:
         type: string
         format: uri
-      # tickets:
-      #  type: array
+        example: https://fr.web.img4.acsta.net/img/07/d9/07d938fbe8037c92882aa4111e81ece7.jpg
       geoSearchResult:
         type: object
         properties:
           distance:
             type: number
+            example: 95.92
           distanceUnit:
             type: string
             enum: [Kilometers, Miles]
+            example: Kilometers
           status:
             type: string
             enum: [InRange, MakeWeight, Kept]
+            example: InRange
   Location:
     properties:
       address1:
         type: string
+        example: 25 Prospect Street
       address2:
         type: string
+        example: Ridgefield
       city:
         type: string
+        example: Ridgefield
       state:
         type: string
+        example: CT
       zipCode:
         type: string
+        example: 06877
       geolocation:
         $ref: "#/definitions/Geocoordinates"
   Geocoordinates:
@@ -166,8 +177,10 @@ definitions:
     properties:
       latitude:
         type: number
+        example: 41.2837855
       longitude:
         type: number
+        example: -73.4973734
   FullTheater:
     allOf:
       - $ref: "#/definitions/LightTheater"
@@ -176,12 +189,16 @@ definitions:
           email:
             type: string
             format: email
+            example: info@prospectortheater.org
           phone:
             type: string
+            example: 2034380136
           timezone:
             type: string
+            example: Eastern Standard Time
           description:
             type: string
+            example: The Prospector Theater is a 501(c)(3) non-profit dedicated to providing meaningful employment to adults with disabilities through the operation of a premium, first-run movie theater.
           movies:
             type: array
             items:
@@ -190,6 +207,10 @@ definitions:
             type: array
             items:
               $ref: "#/definitions/Attribute"
+          tickets:
+            type: array
+            items:
+              $ref: "#/definitions/Ticket"
   BaseMovie:
     required:
       - id
@@ -198,24 +219,31 @@ definitions:
     properties:
       id:
         type: string
+        example: 121-275172
       cinemaSourceId:
         type: integer
+        example: 275172
       title:
         type: string
+        example: "Jumanji: The Next Level"
       sortOrder:
         type: integer
+        example: 0
       releaseType:
         type: string
         enum: [Undefined, ComingSoon, NowPlaying]
+        example: ComingSoon
       releaseDate:
         $ref: "#/definitions/Date"
       certification:
         type: string
         # todo list all certifications
         enum: [G, PG, PG13, R, NC17, UR]
+        example: PG13
       duration:
         type: string
         description: Integer representation of movie duration in minutes
+        example: 114
       mediaItems:
         type: array
         items:
@@ -223,9 +251,11 @@ definitions:
             type:
               type: string
               enum: [Trailer, Still, Poster]
+              example: Trailer
             url:
               type: string
               format: uri
+              example: https://media.westworldmedia.com/mp4/275172_high.mp4
   LightMovie:
     allOf:
       - $ref: "#/definitions/BaseMovie"
@@ -233,6 +263,7 @@ definitions:
         properties:
           isScheduled:
             type: boolean
+            example: true
   LightMovieWithShowtimes:
     allOf:
       - $ref: "#/definitions/BaseMovie"
@@ -252,14 +283,23 @@ definitions:
     properties:
       id:
         type: string
+        example: 1087
       name:
         type: string
+        example: Audio Description
       attributeType:
         type: integer
+        example: 0
         # todo list all attribute types and describe meaning
-        enum: [1]
+        enum: [0, 1]
       priority:
         type: integer
+        example: 0
+      logo:
+        type: string
+        format: uri
+      description:
+        type: string
   Showdate:
     type: object
     properties:
@@ -274,13 +314,17 @@ definitions:
     properties:
       id:
         type: string
+        example: 12351516
       startDateTime:
         type: string
         format: date-time
+        example: 2019-12-13T13:30:00-05:00
       isSoldOut:
         type: boolean
+        example: false
       isBookable:
         type: boolean
+        example: true
       attributes:
         type: array
         items:
@@ -288,6 +332,36 @@ definitions:
       redirectTicketingUrl:
         type: string
         format: uri
+        example: https://prospector.wmpro.uk/StartTicketing/364e637a-6d1f-4fba-b525-a3380084d38c/34012?source=app
+  Ticket:
+    type: object
+    properties:
+      id:
+        type: string
+        example: 1000000001
+      name:
+        type: string
+        example: "Adults"
+      prices:
+        type: array
+        items:
+          type: object
+          properties:
+            amount:
+              type: number
+              example: 1100
+            currency:
+              type: string
+              example: USD
+            screens:
+              type: array
+              items:
+                $ref: "#/definitions/Screen"
+  Screen:
+    type: object
+    properties:
+      id:
+        type: string
   FullMovie:
     allOf:
       - $ref: "#/definitions/BaseMovie"
@@ -295,11 +369,14 @@ definitions:
         properties:
           longSynopsis:
             type: string
+            example: "In Jumanji: The Next Level, the gang is back but the game has changed. As they return to Jumanji to rescue one of their own, they discover that nothing is as they expect. The players will have to brave parts unknown and unexplored, from the arid deserts to the snowy mountains, in order to escape the world's most dangerous game."
           shortSynopsis:
             type: string
+            example: "In Jumanji: The Next Level, the gang is back but the game has changed. As they return to Jumanji to rescue one of their own, they discover that nothing is as they expect. The players will have to brave parts unknown and unexplored, from the arid deserts to the snowy mountains, in order to escape the world's most dangerous game."
           trailer:
             type: string
             format: uri
+            example: https://media.westworldmedia.com/mp4/275172_high.mp4
           photoGallery:
             type: array
             items:
@@ -308,8 +385,10 @@ definitions:
                 imageUrl:
                   type: string
                   format: uri
+                  example: https://fr.web.img2.acsta.net/pictures/19/10/31/15/13/5327217.jpg
                 id:
                   type: string
+                  example: SW1hZ2U6MjE2NzcyNzQ=
           cast:
             type: array
             items:
@@ -321,8 +400,10 @@ definitions:
             properties:
               userRating:
                 type: number
+                example: 3.54
               pressRating:
                 type: number
+                example: 2.71
           theaters:
             type: array
             items:
@@ -339,11 +420,14 @@ definitions:
     properties:
       id:
         type: string
+        example: UGVyc29uOjM4NzU1
       name:
         type: string
+        example: Dwayne Johnson
       imageUrl:
         type: string
         format: uri
+        example: https://fr.web.img2.acsta.net/pictures/14/07/24/17/14/366516.jpg
 
 parameters:
   exhibitorCode:
